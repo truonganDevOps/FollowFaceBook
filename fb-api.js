@@ -1,7 +1,7 @@
 function extractPostId(url) {
   try {
     const u = new URL(url);
-    const postsMatch = u.pathname.match(/\/posts\/(\d+)/);
+    const postsMatch = u.pathname.match(/\/posts\/([\w]+)/);
     if (postsMatch) return postsMatch[1];
     const storyId = u.searchParams.get('story_fbid');
     if (storyId) return storyId;
@@ -22,9 +22,7 @@ function parseCommenters(response) {
       acc.push({ userId: author.id, name: author.name, profileUrl: author.url });
       return acc;
     }, []);
-  } catch {
-    return [];
-  }
+  } catch (e) { console.warn('[fb-api] parseCommenters error:', e); return []; }
 }
 
 async function getFbDtsg() {
@@ -37,6 +35,7 @@ async function getFbDtsg() {
 // doc_id và cấu trúc variables cần xác minh qua DevTools (xem Task 8)
 async function fetchComments(postId) {
   const dtsg = await getFbDtsg();
+  if (!dtsg) throw new Error('Could not extract fb_dtsg token');
   const params = new URLSearchParams({
     fb_dtsg: dtsg,
     variables: JSON.stringify({
