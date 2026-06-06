@@ -36,7 +36,9 @@ function renderStats(follows, queue) {
 }
 
 function loadStats() {
-  chrome.runtime.sendMessage({ action: 'getStats' }, ({ posts, follows, queue }) => {
+  chrome.runtime.sendMessage({ action: 'getStats' }, res => {
+    if (!res) return;
+    const { posts, follows, queue } = res;
     renderPosts(posts);
     renderStats(follows, queue);
   });
