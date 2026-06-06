@@ -66,6 +66,60 @@ describe('storage', () => {
     expect(chrome.storage.local.set).not.toHaveBeenCalled();
   });
 
+  test('removePost removes post by postId', async () => {
+    chrome.storage.local.get.mockImplementation((keys, cb) =>
+      cb({ posts: [{ postId: '123', postUrl: 'x', addedAt: 1 }, { postId: '456', postUrl: 'y', addedAt: 2 }] })
+    );
+    await removePost('123');
+    expect(chrome.storage.local.set).toHaveBeenCalledWith(
+      { posts: [{ postId: '456', postUrl: 'y', addedAt: 2 }] },
+      expect.any(Function)
+    );
+  });
+
+  test('getFollows returns empty array when storage empty', async () => {
+    chrome.storage.local.get.mockImplementation((keys, cb) => cb({}));
+    expect(await getFollows()).toEqual([]);
+  });
+
+  test('getQueue returns empty array when storage empty', async () => {
+    chrome.storage.local.get.mockImplementation((keys, cb) => cb({}));
+    expect(await getQueue()).toEqual([]);
+  });
+
+  test('removeFromQueue removes item by userId', async () => {
+    chrome.storage.local.get.mockImplementation((keys, cb) =>
+      cb({ queue: [{ userId: 'u1' }, { userId: 'u2' }] })
+    );
+    await removeFromQueue('u1');
+    expect(chrome.storage.local.set).toHaveBeenCalledWith(
+      { queue: [{ userId: 'u2' }] },
+      expect.any(Function)
+    );
+  });
+
+  test('getLastChecked returns 0 when not set', async () => {
+    chrome.storage.local.get.mockImplementation((keys, cb) => cb({}));
+    expect(await getLastChecked('post1')).toBe(0);
+  });
+
+  test('setLastChecked saves timestamp for postId', async () => {
+    chrome.storage.local.get.mockImplementation((keys, cb) => cb({ lastChecked: {} }));
+    await setLastChecked('post1', 12345);
+    expect(chrome.storage.local.set).toHaveBeenCalledWith(
+      { lastChecked: { post1: 12345 } },
+      expect.any(Function)
+    );
+  });
+
+  test('saveFollow skips duplicate userId', async () => {
+    chrome.storage.local.get.mockImplementation((keys, cb) =>
+      cb({ follows: [{ userId: 'u1', name: 'A', profileUrl: 'x', postId: '1', followedAt: 1, followedBack: false, checkedAt: null }] })
+    );
+    await saveFollow({ userId: 'u1', name: 'A', profileUrl: 'x', postId: '1' });
+    expect(chrome.storage.local.set).not.toHaveBeenCalled();
+  });
+
   test('saveFollow saves record with followedBack=false', async () => {
     chrome.storage.local.get.mockImplementation((keys, cb) => cb({ follows: [] }));
     await saveFollow({ userId: 'u1', name: 'Test', profileUrl: 'https://facebook.com/u1', postId: '123' });

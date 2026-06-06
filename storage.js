@@ -50,7 +50,9 @@ async function getQueue() {
 }
 
 async function addToQueue({ userId, profileUrl, postId }) {
-  const [queue, follows] = await Promise.all([getQueue(), getFollows()]);
+  const data = await get(['queue', 'follows']);
+  const queue = data.queue || [];
+  const follows = data.follows || [];
   if (queue.find(q => q.userId === userId)) return;
   if (follows.find(f => f.userId === userId)) return;
   queue.push({ userId, profileUrl, postId });
