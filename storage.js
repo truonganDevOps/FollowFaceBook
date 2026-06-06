@@ -1,9 +1,19 @@
 function get(keys) {
-  return new Promise(resolve => chrome.storage.local.get(keys, resolve));
+  return new Promise((resolve, reject) =>
+    chrome.storage.local.get(keys, result => {
+      if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+      else resolve(result);
+    })
+  );
 }
 
 function set(data) {
-  return new Promise(resolve => chrome.storage.local.set(data, resolve));
+  return new Promise((resolve, reject) =>
+    chrome.storage.local.set(data, () => {
+      if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+      else resolve();
+    })
+  );
 }
 
 async function getPosts() {
@@ -11,7 +21,7 @@ async function getPosts() {
   return data.posts || [];
 }
 
-async function savePost(postId, postUrl) {
+async function savePost({ postId, postUrl }) {
   const posts = await getPosts();
   if (posts.find(p => p.postId === postId)) return;
   posts.push({ postId, postUrl, addedAt: Date.now() });
@@ -66,9 +76,12 @@ async function removeFromQueue(userId) {
 
 async function getLastChecked(postId) {
   const data = await get('lastChecked');
-  return (data.lastChecked || {})[postId] || 0;
+  return (data.lastChecked || {})[postId] ?? null;
 }
 
+// NOTE: read-modify-write — nếu gọi song song cho nhiều posts cùng lúc,
+// timestamp của post sau có thể ghi đè timestamp của post trước.
+// Background worker đảm bảo các posts được xử lý tuần tự nên không xảy ra trong thực tế.
 async function setLastChecked(postId, timestamp) {
   const data = await get('lastChecked');
   const lastChecked = data.lastChecked || {};

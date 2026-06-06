@@ -20,7 +20,7 @@ describe('storage', () => {
 
   test('savePost adds post to storage', async () => {
     chrome.storage.local.get.mockImplementation((keys, cb) => cb({ posts: [] }));
-    await savePost('123', 'https://facebook.com/post/123');
+    await savePost({ postId: '123', postUrl: 'https://facebook.com/post/123' });
     expect(chrome.storage.local.set).toHaveBeenCalledWith(
       expect.objectContaining({
         posts: expect.arrayContaining([
@@ -35,7 +35,7 @@ describe('storage', () => {
     chrome.storage.local.get.mockImplementation((keys, cb) =>
       cb({ posts: [{ postId: '123', postUrl: 'https://facebook.com/post/123', addedAt: 1 }] })
     );
-    await savePost('123', 'https://facebook.com/post/123');
+    await savePost({ postId: '123', postUrl: 'https://facebook.com/post/123' });
     expect(chrome.storage.local.set).not.toHaveBeenCalled();
   });
 
@@ -98,9 +98,9 @@ describe('storage', () => {
     );
   });
 
-  test('getLastChecked returns 0 when not set', async () => {
+  test('getLastChecked returns null when not set', async () => {
     chrome.storage.local.get.mockImplementation((keys, cb) => cb({}));
-    expect(await getLastChecked('post1')).toBe(0);
+    expect(await getLastChecked('post1')).toBeNull();
   });
 
   test('setLastChecked saves timestamp for postId', async () => {
@@ -145,5 +145,11 @@ describe('storage', () => {
       }),
       expect.any(Function)
     );
+  });
+
+  test('updateFollowBack does nothing when userId not found', async () => {
+    chrome.storage.local.get.mockImplementation((keys, cb) => cb({ follows: [] }));
+    await updateFollowBack('nonexistent', true);
+    expect(chrome.storage.local.set).not.toHaveBeenCalled();
   });
 });
