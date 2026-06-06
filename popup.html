@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>FollowFaceBook</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="header">
+    <span class="title">FollowFaceBook</span>
+  </div>
+
+  <div class="section">
+    <label class="label">Bài post đang theo dõi:</label>
+    <div class="input-row">
+      <input type="text" id="postUrl" placeholder="Nhập link bài post Facebook..." />
+      <button id="addPost">+</button>
+    </div>
+    <div id="postList"></div>
+    <div id="addError" class="error hidden"></div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box"><span class="stat-num" id="statFollowed">0</span><span class="stat-label">Đã follow</span></div>
+    <div class="stat-box"><span class="stat-num" id="statQueue">0</span><span class="stat-label">Đang chờ</span></div>
+    <div class="stat-box"><span class="stat-num" id="statBack">0</span><span class="stat-label">Follow lại</span></div>
+    <div class="stat-box"><span class="stat-num" id="statNotBack">0</span><span class="stat-label">Chưa lại</span></div>
+  </div>
+
+  <div class="section">
+    <label class="label">Chưa follow lại:</label>
+    <div id="notBackList" class="follow-list"></div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
