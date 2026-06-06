@@ -25,6 +25,11 @@ function followUser(profileUrl) {
     }, 15000);
 
     chrome.tabs.create({ url: profileUrl, active: false }, tab => {
+      if (chrome.runtime.lastError || !tab) {
+        clearTimeout(timeout);
+        resolve({ success: false, reason: 'tab_create_failed' });
+        return;
+      }
       const tabId = tab.id;
       const listener = (updatedTabId, changeInfo) => {
         if (updatedTabId !== tabId || changeInfo.status !== 'complete') return;
@@ -50,18 +55,20 @@ async function processNext() {
   if (queue.length === 0) return;
 
   const item = queue[0];
-  const result = await followUser(item.profileUrl);
-
-  if (result.success) {
-    await saveFollow({
-      userId: item.userId,
-      name: item.name || '',
-      profileUrl: item.profileUrl,
-      postId: item.postId
-    });
+  try {
+    const result = await followUser(item.profileUrl);
+    if (result.success) {
+      await saveFollow({
+        userId: item.userId,
+        name: item.name || '',
+        profileUrl: item.profileUrl,
+        postId: item.postId
+      });
+    }
+  } finally {
+    await removeFromQueue(item.userId);
+    await sleep(getRandomDelay());
   }
-  await removeFromQueue(item.userId);
-  await sleep(getRandomDelay());
 }
 
 if (typeof module !== 'undefined') module.exports = { getRandomDelay, canFollow, processNext, followUser };
