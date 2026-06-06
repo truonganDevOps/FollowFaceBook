@@ -1,6 +1,15 @@
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 function timeAgo(ts) {
-  const h = Math.floor((Date.now() - ts) / 3600000);
-  const m = Math.floor((Date.now() - ts) / 60000);
+  const elapsed = Date.now() - ts;
+  const h = Math.floor(elapsed / 3600000);
+  const m = Math.floor(elapsed / 60000);
   return h > 0 ? `${h}h` : `${m}p`;
 }
 
@@ -8,8 +17,8 @@ function renderPosts(posts) {
   const el = document.getElementById('postList');
   el.innerHTML = posts.map(p => `
     <div class="post-item">
-      <a href="${p.postUrl}" target="_blank" title="${p.postUrl}">${p.postUrl}</a>
-      <span class="remove" data-id="${p.postId}">×</span>
+      <a href="${escapeHtml(p.postUrl)}" target="_blank" title="${escapeHtml(p.postUrl)}">${escapeHtml(p.postUrl)}</a>
+      <span class="remove" data-id="${escapeHtml(p.postId)}">×</span>
     </div>`).join('');
   el.querySelectorAll('.remove').forEach(btn =>
     btn.addEventListener('click', () =>
@@ -30,7 +39,7 @@ function renderStats(follows, queue) {
     ? '<div style="padding:8px 0;color:#65676b;font-size:12px">Không có ai</div>'
     : notBack.map(f => `
         <div class="follow-item">
-          <a href="${f.profileUrl}" target="_blank">${f.name || f.userId}</a>
+          <a href="${escapeHtml(f.profileUrl)}" target="_blank">${escapeHtml(f.name || f.userId)}</a>
           <span class="time">${timeAgo(f.followedAt)}</span>
         </div>`).join('');
 }
