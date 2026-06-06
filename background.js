@@ -19,9 +19,13 @@ chrome.alarms.get(ALARM_NAME, alarm => {
 
 chrome.alarms.onAlarm.addListener(async alarm => {
   if (alarm.name !== ALARM_NAME) return;
-  await pollAllPosts();
-  await processNext();
-  await checkFollowBack();
+  try {
+    await pollAllPosts();
+    await processNext();
+    await checkFollowBack();
+  } catch (e) {
+    console.error('[FollowFB] Alarm handler error:', e);
+  }
 });
 
 async function pollAllPosts() {
@@ -43,14 +47,14 @@ async function checkFollowBack(isFollowingBackFn = defaultIsFollowingBack) {
   const follows = await getFollows();
   const twentyFourHoursAgo = Date.now() - 24 * 3600000;
   for (const follow of follows) {
-    if (follow.checkedAt !== null) continue;
+    if (follow.checkedAt != null) continue;
     if (follow.followedAt > twentyFourHoursAgo) continue;
     const followedBack = await isFollowingBackFn(follow.userId);
     await updateFollowBack(follow.userId, followedBack);
   }
 }
 
-async function defaultIsFollowingBack(userId) {
+async function defaultIsFollowingBack(_userId) {
   // TODO Task 8: implement sau khi xác minh friendship status API qua DevTools
   return false;
 }
