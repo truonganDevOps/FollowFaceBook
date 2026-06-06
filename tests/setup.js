@@ -1,2 +1,1 @@
-const { chrome } = require('jest-chrome');
-global.chrome = chrome;
+Object.assign(global, require('jest-chrome'));

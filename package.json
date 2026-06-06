@@ -1,13 +1,14 @@
 {
   "name": "follow-facebook",
   "version": "1.0.0",
+  "private": true,
   "description": "Tự động follow người comment vào bài post Facebook",
   "scripts": {
     "test": "jest"
   },
   "jest": {
     "testEnvironment": "node",
-    "setupFiles": [
+    "setupFilesAfterEnv": [
       "./tests/setup.js"
     ]
   },
