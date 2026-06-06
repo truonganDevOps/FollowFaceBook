@@ -1,3 +1,5 @@
+const COMMENTS_DOC_ID = '5765854403456835'; // CẦN XÁC MINH QUA DEVTOOLS (Task 8)
+
 function extractPostId(url) {
   try {
     const u = new URL(url);
@@ -34,16 +36,22 @@ async function getFbDtsg() {
 
 // doc_id và cấu trúc variables cần xác minh qua DevTools (xem Task 8)
 async function fetchComments(postId) {
-  const dtsg = await getFbDtsg();
+  let dtsg;
+  try {
+    dtsg = await getFbDtsg();
+  } catch (e) {
+    throw new Error(`[fb-api] Failed to get fb_dtsg token: ${e.message}`);
+  }
   if (!dtsg) throw new Error('Could not extract fb_dtsg token');
   const params = new URLSearchParams({
     fb_dtsg: dtsg,
     variables: JSON.stringify({
       feedbackID: btoa(`feedback:${postId}`),
+      // TODO: pagination — hiện chỉ lấy count: 50 (trang đầu)
       count: 50,
       useDefaultActor: false,
     }),
-    doc_id: '5765854403456835', // CẦN XÁC MINH QUA DEVTOOLS
+    doc_id: COMMENTS_DOC_ID,
   });
 
   const response = await fetch('https://www.facebook.com/api/graphql/', {
@@ -55,7 +63,12 @@ async function fetchComments(postId) {
 
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
   const text = await response.text();
-  const json = JSON.parse(text.split('\n')[0]);
+  let json;
+  try {
+    json = JSON.parse(text.split('\n')[0]);
+  } catch (e) {
+    throw new Error(`[fb-api] Failed to parse Facebook response: ${e.message}`);
+  }
   return parseCommenters(json);
 }
 

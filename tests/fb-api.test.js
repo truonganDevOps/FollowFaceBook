@@ -16,6 +16,10 @@ describe('extractPostId', () => {
   test('trả về null với URL không hợp lệ', () => {
     expect(extractPostId('https://www.facebook.com/profile')).toBeNull();
   });
+
+  test('trích pfbid từ URL /posts/pfbid...', () => {
+    expect(extractPostId('https://www.facebook.com/username/posts/pfbid02AbCdEfGhIj')).toBe('pfbid02AbCdEfGhIj');
+  });
 });
 
 describe('parseCommenters', () => {
