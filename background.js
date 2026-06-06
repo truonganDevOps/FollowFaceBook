@@ -9,23 +9,20 @@ if (typeof importScripts !== 'undefined') {
 
 const ALARM_NAME = 'poll-comments';
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.alarms.create(ALARM_NAME, { periodInMinutes: 5 });
-});
+function ensureAlarm() {
+  chrome.alarms.get(ALARM_NAME, alarm => {
+    if (!alarm) chrome.alarms.create(ALARM_NAME, { periodInMinutes: 5 });
+  });
+}
 
-chrome.alarms.get(ALARM_NAME, alarm => {
-  if (!alarm) chrome.alarms.create(ALARM_NAME, { periodInMinutes: 5 });
-});
+chrome.runtime.onInstalled.addListener(() => ensureAlarm());
+ensureAlarm();
 
 chrome.alarms.onAlarm.addListener(async alarm => {
   if (alarm.name !== ALARM_NAME) return;
-  try {
-    await pollAllPosts();
-    await processNext();
-    await checkFollowBack();
-  } catch (e) {
-    console.error('[FollowFB] Alarm handler error:', e);
-  }
+  try { await pollAllPosts(); } catch (e) { console.error('[FollowFB] pollAllPosts error:', e); }
+  try { await processNext(); } catch (e) { console.error('[FollowFB] processNext error:', e); }
+  try { await checkFollowBack(); } catch (e) { console.error('[FollowFB] checkFollowBack error:', e); }
 });
 
 async function pollAllPosts() {
@@ -59,7 +56,7 @@ async function defaultIsFollowingBack(_userId) {
   return false;
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (!message) return false;
 
   if (message.action === 'addPost') {
