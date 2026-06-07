@@ -18,6 +18,8 @@
     </div>
     <div id="postList"></div>
     <div id="addError" class="error hidden"></div>
+    <button id="scanNow" class="scan-btn">Quét &amp; Follow ngay</button>
+    <div id="scanStatus" class="scan-status hidden"></div>
   </div>
 
   <div class="stats-row">
@@ -27,10 +29,15 @@
     <div class="stat-box"><span class="stat-num" id="statNotBack">0</span><span class="stat-label">Chưa lại</span></div>
   </div>
 
-  <div class="section">
-    <label class="label">Chưa follow lại:</label>
-    <div id="notBackList" class="follow-list"></div>
+  <div class="tabs">
+    <button class="tab active" data-filter="all">Tất cả</button>
+    <button class="tab" data-filter="queue">Chờ</button>
+    <button class="tab" data-filter="followed">Đã follow</button>
+    <button class="tab" data-filter="back">FL lại</button>
+    <button class="tab" data-filter="notback">Chưa lại</button>
   </div>
+
+  <div id="personList" class="person-list"></div>
 
   <script src="popup.js"></script>
 </body>

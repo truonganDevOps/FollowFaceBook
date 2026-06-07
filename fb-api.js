@@ -1,10 +1,12 @@
-const COMMENTS_DOC_ID = '5765854403456835'; // CẦN XÁC MINH QUA DEVTOOLS (Task 8)
+const COMMENTS_DOC_ID = '27639125115705107';
 
 function extractPostId(url) {
   try {
     const u = new URL(url);
     const postsMatch = u.pathname.match(/\/posts\/([\w]+)/);
     if (postsMatch) return postsMatch[1];
+    const permalinkMatch = u.pathname.match(/\/permalink\/([\d]+)/);
+    if (permalinkMatch) return permalinkMatch[1];
     const storyId = u.searchParams.get('story_fbid');
     if (storyId) return storyId;
     return null;
@@ -15,11 +17,11 @@ function extractPostId(url) {
 
 function parseCommenters(response) {
   try {
-    const edges = response.data.feedback.display_comments.edges;
+    const edges = response.data.node.comment_rendering_instance_for_feed_location.comments.edges;
     const seen = new Set();
     return edges.reduce((acc, edge) => {
-      const author = edge.node.author;
-      if (!author || seen.has(author.id)) return acc;
+      const { author, depth } = edge.node;
+      if (depth !== 0 || !author || seen.has(author.id)) return acc;
       seen.add(author.id);
       acc.push({ userId: author.id, name: author.name, profileUrl: author.url });
       return acc;
@@ -28,13 +30,11 @@ function parseCommenters(response) {
 }
 
 async function getFbDtsg() {
-  const response = await fetch('https://www.facebook.com/', { credentials: 'include' });
-  const text = await response.text();
-  const match = text.match(/"DTSGInitialData"[^}]*"token":"([^"]+)"/);
-  return match ? match[1] : '';
+  return new Promise(resolve =>
+    chrome.storage.local.get(['fb_dtsg'], data => resolve(data.fb_dtsg || ''))
+  );
 }
 
-// doc_id và cấu trúc variables cần xác minh qua DevTools (xem Task 8)
 async function fetchComments(postId) {
   let dtsg;
   try {
@@ -42,14 +42,24 @@ async function fetchComments(postId) {
   } catch (e) {
     throw new Error(`[fb-api] Failed to get fb_dtsg token: ${e.message}`);
   }
-  if (!dtsg) throw new Error('Could not extract fb_dtsg token');
+  if (!dtsg) throw new Error('Chưa có token. Vui lòng mở ít nhất một tab Facebook trước.');
   const params = new URLSearchParams({
     fb_dtsg: dtsg,
     variables: JSON.stringify({
-      feedbackID: btoa(`feedback:${postId}`),
-      // TODO: pagination — hiện chỉ lấy count: 50 (trang đầu)
-      count: 50,
+      id: btoa(`feedback:${postId}`),
+      commentsAfterCount: 50,
+      commentsAfterCursor: null,
+      commentsBeforeCount: null,
+      commentsBeforeCursor: null,
+      commentsIntentToken: null,
+      feedLocation: 'POST_PERMALINK_DIALOG',
+      focusCommentID: null,
+      scale: 1,
       useDefaultActor: false,
+      '__relay_internal__pv__CometUFICommentAutoTranslationTyperelayprovider': 'AUTO_TRANSLATE',
+      '__relay_internal__pv__CometUFICommentAvatarStickerAnimatedImagerelayprovider': false,
+      '__relay_internal__pv__CometUFICommentActionLinksRewriteEnabledrelayprovider': false,
+      '__relay_internal__pv__IsWorkUserrelayprovider': false,
     }),
     doc_id: COMMENTS_DOC_ID,
   });

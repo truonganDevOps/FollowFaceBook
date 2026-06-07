@@ -29,8 +29,10 @@ async function savePost({ postId, postUrl }) {
 }
 
 async function removePost(postId) {
-  const posts = await getPosts();
-  await set({ posts: posts.filter(p => p.postId !== postId) });
+  const data = await get(['posts', 'queue']);
+  const posts = (data.posts || []).filter(p => p.postId !== postId);
+  const queue = (data.queue || []).filter(q => q.postId !== postId);
+  await set({ posts, queue });
 }
 
 async function getFollows() {
@@ -38,10 +40,10 @@ async function getFollows() {
   return data.follows || [];
 }
 
-async function saveFollow({ userId, name, profileUrl, postId }) {
+async function saveFollow({ userId, name, profileUrl, postId, avatarUrl }) {
   const follows = await getFollows();
   if (follows.find(f => f.userId === userId)) return;
-  follows.push({ userId, name, profileUrl, postId, followedAt: Date.now(), followedBack: false, checkedAt: null });
+  follows.push({ userId, name, profileUrl, postId, avatarUrl: avatarUrl || '', followedAt: Date.now(), followedBack: false, checkedAt: null });
   await set({ follows });
 }
 
@@ -59,13 +61,13 @@ async function getQueue() {
   return data.queue || [];
 }
 
-async function addToQueue({ userId, profileUrl, postId }) {
+async function addToQueue({ userId, name, profileUrl, postId, avatarUrl }) {
   const data = await get(['queue', 'follows']);
   const queue = data.queue || [];
   const follows = data.follows || [];
   if (queue.find(q => q.userId === userId)) return;
   if (follows.find(f => f.userId === userId)) return;
-  queue.push({ userId, profileUrl, postId });
+  queue.push({ userId, name: name || '', profileUrl, postId, avatarUrl: avatarUrl || '' });
   await set({ queue });
 }
 

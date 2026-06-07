@@ -50,9 +50,9 @@ function followUser(profileUrl) {
 }
 
 async function processNext() {
-  if (!(await canFollow())) return;
+  if (!(await canFollow())) return false;
   const queue = await getQueue();
-  if (queue.length === 0) return;
+  if (queue.length === 0) return false;
 
   const item = queue[0];
   try {
@@ -62,13 +62,15 @@ async function processNext() {
         userId: item.userId,
         name: item.name || '',
         profileUrl: item.profileUrl,
-        postId: item.postId
+        postId: item.postId,
+        avatarUrl: item.avatarUrl || ''
       });
     }
   } finally {
     await removeFromQueue(item.userId);
     await sleep(getRandomDelay());
   }
+  return true;
 }
 
 if (typeof module !== 'undefined') module.exports = { getRandomDelay, canFollow, processNext, followUser };

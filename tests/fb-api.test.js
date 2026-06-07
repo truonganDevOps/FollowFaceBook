@@ -20,22 +20,30 @@ describe('extractPostId', () => {
   test('trích pfbid từ URL /posts/pfbid...', () => {
     expect(extractPostId('https://www.facebook.com/username/posts/pfbid02AbCdEfGhIj')).toBe('pfbid02AbCdEfGhIj');
   });
+
+  test('trích postId từ URL /groups/.../permalink/', () => {
+    expect(extractPostId('https://www.facebook.com/groups/242605124320242/permalink/1664860838761323/')).toBe('1664860838761323');
+  });
 });
+
+function makeResponse(edges) {
+  return {
+    data: {
+      node: {
+        comment_rendering_instance_for_feed_location: {
+          comments: { edges }
+        }
+      }
+    }
+  };
+}
 
 describe('parseCommenters', () => {
   test('trích danh sách commenter từ GraphQL response', () => {
-    const mockResponse = {
-      data: {
-        feedback: {
-          display_comments: {
-            edges: [
-              { node: { author: { id: 'u1', name: 'Nguyen Van A', url: 'https://www.facebook.com/a' } } },
-              { node: { author: { id: 'u2', name: 'Tran Thi B', url: 'https://www.facebook.com/b' } } }
-            ]
-          }
-        }
-      }
-    };
+    const mockResponse = makeResponse([
+      { node: { author: { id: 'u1', name: 'Nguyen Van A', url: 'https://www.facebook.com/a' }, depth: 0 } },
+      { node: { author: { id: 'u2', name: 'Tran Thi B', url: 'https://www.facebook.com/b' }, depth: 0 } }
+    ]);
     const result = parseCommenters(mockResponse);
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual({ userId: 'u1', name: 'Nguyen Van A', profileUrl: 'https://www.facebook.com/a' });
@@ -47,18 +55,20 @@ describe('parseCommenters', () => {
   });
 
   test('loại bỏ trùng lặp theo userId', () => {
-    const mockResponse = {
-      data: {
-        feedback: {
-          display_comments: {
-            edges: [
-              { node: { author: { id: 'u1', name: 'A', url: 'https://www.facebook.com/a' } } },
-              { node: { author: { id: 'u1', name: 'A', url: 'https://www.facebook.com/a' } } }
-            ]
-          }
-        }
-      }
-    };
+    const mockResponse = makeResponse([
+      { node: { author: { id: 'u1', name: 'A', url: 'https://www.facebook.com/a' }, depth: 0 } },
+      { node: { author: { id: 'u1', name: 'A', url: 'https://www.facebook.com/a' }, depth: 0 } }
+    ]);
     expect(parseCommenters(mockResponse)).toHaveLength(1);
+  });
+
+  test('bỏ qua reply (depth > 0)', () => {
+    const mockResponse = makeResponse([
+      { node: { author: { id: 'u1', name: 'A', url: 'https://www.facebook.com/a' }, depth: 0 } },
+      { node: { author: { id: 'u2', name: 'B', url: 'https://www.facebook.com/b' }, depth: 1 } }
+    ]);
+    const result = parseCommenters(mockResponse);
+    expect(result).toHaveLength(1);
+    expect(result[0].userId).toBe('u1');
   });
 });

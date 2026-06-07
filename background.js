@@ -21,15 +21,61 @@ ensureAlarm();
 chrome.alarms.onAlarm.addListener(async alarm => {
   if (alarm.name !== ALARM_NAME) return;
   try { await pollAllPosts(); } catch (e) { console.error('[FollowFB] pollAllPosts error:', e); }
-  try { await processNext(); } catch (e) { console.error('[FollowFB] processNext error:', e); }
+  try { await processQueue(); } catch (e) { console.error('[FollowFB] processQueue error:', e); }
   try { await checkFollowBack(); } catch (e) { console.error('[FollowFB] checkFollowBack error:', e); }
 });
+
+async function getFacebookTab() {
+  const tabs = await new Promise(resolve =>
+    chrome.tabs.query({ url: 'https://www.facebook.com/*' }, resolve)
+  );
+  if (tabs.length) return { tab: tabs[0], opened: false };
+
+  const tab = await new Promise(resolve =>
+    chrome.tabs.create({ url: 'https://www.facebook.com/', active: false }, resolve)
+  );
+  await new Promise(resolve => {
+    chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+      if (tabId === tab.id && info.status === 'complete') {
+        chrome.tabs.onUpdated.removeListener(listener);
+        resolve();
+      }
+    });
+  });
+  await new Promise(resolve => setTimeout(resolve, 4000));
+  return { tab, opened: true };
+}
+
+async function fetchCommentsViaTab(postId) {
+  const { tab, opened } = await getFacebookTab();
+  try {
+    return await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error('fetchComments timeout')), 20000);
+      chrome.tabs.sendMessage(tab.id, { action: 'fetchComments', postId }, res => {
+        clearTimeout(timeout);
+        if (chrome.runtime.lastError) return reject(new Error(chrome.runtime.lastError.message));
+        if (res && res.error) return reject(new Error(res.error));
+        resolve(res && res.commenters || []);
+      });
+    });
+  } finally {
+    if (opened) chrome.tabs.remove(tab.id);
+  }
+}
+
+async function processQueue() {
+  const MAX_PER_CYCLE = 5;
+  for (let i = 0; i < MAX_PER_CYCLE; i++) {
+    const processed = await processNext();
+    if (!processed) break;
+  }
+}
 
 async function pollAllPosts() {
   const posts = await getPosts();
   for (const post of posts) {
     try {
-      const commenters = await fetchComments(post.postId);
+      const commenters = await fetchCommentsViaTab(post.postId);
       for (const commenter of commenters) {
         await addToQueue({ ...commenter, postId: post.postId });
       }
@@ -76,6 +122,15 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       sendResponse({ posts, follows, queue });
     });
     return true;
+  }
+
+  if (message.action === 'scanNow') {
+    sendResponse({ started: true });
+    (async () => {
+      try { await pollAllPosts(); } catch (e) { console.error('[FollowFB] scanNow pollAllPosts:', e); }
+      try { await processQueue(); } catch (e) { console.error('[FollowFB] scanNow processQueue:', e); }
+    })();
+    return false;
   }
 
   return false;
