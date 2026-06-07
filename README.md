@@ -8,6 +8,10 @@ Chrome Extension tự động follow những người đã comment vào bài pos
   </a>
 </p>
 
+<p align="center">
+  <img src="screenshots/popup.png" alt="FollowFaceBook Extension" width="320">
+</p>
+
 ---
 
 ## Cài đặt (4 bước)
