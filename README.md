@@ -2,40 +2,30 @@
 
 Chrome Extension tự động follow những người đã comment vào bài post Facebook của bạn.
 
-## Tính năng
+<p align="center">
+  <a href="https://github.com/truonganDevOps/FollowFaceBook/archive/refs/heads/master.zip">
+    <img src="https://img.shields.io/badge/⬇️%20Tải%20Extension%20về%20máy-Click%20vào%20đây-1877f2?style=for-the-badge" alt="Download">
+  </a>
+</p>
 
-- Dán link bài post Facebook → extension tự quét toàn bộ comment
-- Tự động follow từng người theo thứ tự, bỏ qua người đã follow
-- Giới hạn 20 follow/giờ để tránh bị Facebook hạn chế
-- Theo dõi trạng thái: đang chờ, đã follow, follow lại, chưa follow lại
-- Xóa link post → dừng follow ngay lập tức
+---
 
-## Cài đặt
+## Cài đặt (4 bước)
 
-### Bước 1: Tải source code
+**Bước 1:** Nhấn nút tải bên trên → giải nén file ZIP vừa tải về.
 
-- Nhấn **Code → Download ZIP** trên trang này rồi giải nén, **hoặc**
-- Clone về máy:
-  ```
-  git clone https://github.com/truonganDevOps/FollowFaceBook.git
-  ```
-
-### Bước 2: Mở trang Extensions của Chrome
-
-Truy cập địa chỉ sau trên Chrome:
+**Bước 2:** Mở Chrome, vào địa chỉ:
 ```
 chrome://extensions
 ```
 
-### Bước 3: Bật Developer Mode
+**Bước 3:** Gạt công tắc **Developer mode** ở góc trên bên phải sang **ON**.
 
-Gạt công tắc **Developer mode** ở góc trên bên phải sang **ON**.
+**Bước 4:** Nhấn **Load unpacked** → chọn thư mục vừa giải nén.
 
-### Bước 4: Load extension
+Extension sẽ xuất hiện với icon **F** màu xanh trên thanh công cụ Chrome.
 
-Nhấn **Load unpacked** → chọn thư mục vừa giải nén (thư mục chứa file `manifest.json`).
-
-Extension sẽ xuất hiện trong danh sách với icon chữ **F** màu xanh.
+---
 
 ## Cách sử dụng
 
@@ -43,10 +33,14 @@ Extension sẽ xuất hiện trong danh sách với icon chữ **F** màu xanh.
 2. Nhấn icon extension trên thanh công cụ.
 3. Dán link bài post vào ô nhập → nhấn **+**.
 4. Nhấn **Quét & Follow ngay** để bắt đầu.
-5. Extension sẽ fetch comment, xếp hàng và follow từng người tự động.
 
-> Extension cũng tự động chạy ngầm mỗi 5 phút để quét comment mới.
+Extension sẽ tự quét comment, xếp hàng và follow từng người tự động. Giới hạn 20 follow/giờ để tránh bị Facebook hạn chế.
 
-## Gỡ cài đặt
+---
 
-Vào `chrome://extensions` → tìm FollowFaceBook → nhấn **Remove**.
+## Tính năng
+
+- Tự động follow người comment, bỏ qua người đã follow
+- Theo dõi trạng thái: đang chờ / đã follow / follow lại / chưa follow lại
+- Xóa link post → dừng follow ngay lập tức
+- Tự động chạy ngầm mỗi 5 phút để quét comment mới
