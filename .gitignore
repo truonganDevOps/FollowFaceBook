@@ -6,3 +6,7 @@ coverage/
 *.pem
 *.crx
 .env
+docs/
+tests/
+package.json
+package-lock.json
